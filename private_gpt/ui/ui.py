@@ -3,6 +3,7 @@
 import base64
 import logging
 import time
+import requests
 from collections.abc import Iterable
 from enum import Enum
 from pathlib import Path
@@ -89,6 +90,12 @@ class PrivateGptUi:
         chunks_service: ChunksService,
         summarizeService: SummarizeService,
     ) -> None:
+        self.emailtextbox = None
+        self.passwordtextbox = None
+        self.button = None
+        self.message = ""
+        self.message_visible = True
+        self.logined = False
         self._ingest_service = ingest_service
         self._chat_service = chat_service
         self._chunks_service = chunks_service
@@ -362,6 +369,25 @@ class PrivateGptUi:
             gr.components.Button(interactive=True),
             gr.components.Textbox(self._selected_filename),
         ]
+    
+    def login(self, email, password):
+        try:
+            if email == "" or password == "":
+                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Please fill both fields.</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+            # Mock API call for demonstration
+            response = requests.post(
+                "https://md.msai-labs.com/v1/external_auth/signin",
+                json={"email": email, "password": password},
+            )
+
+            if response.status_code == 200:
+                # return RedirectResponse(url="/gpt")
+                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Login successful! Redirecting...</p></div>", gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)
+            else:
+                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Invalid credentials. Please try again.</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+        except Exception as e:
+            return f"<div class='contain' style='text-align: center; margin-top: 10px;'><p>Error: {str(e)}</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+        
 
     def _build_ui_blocks(self) -> gr.Blocks:
         logger.debug("Creating the UI blocks")
@@ -387,12 +413,19 @@ class PrivateGptUi:
             ".footer { text-align: center; margin-top: 20px; font-size: 14px; display: flex; align-items: center; justify-content: center; }"
             ".footer-zylon-link { display:flex; margin-left: 5px; text-decoration: auto; color: var(--body-text-color); }"
             ".footer-zylon-link:hover { color: #C7BAFF; }"
-            ".footer-zylon-ico { height: 20px; margin-left: 5px; background-color: antiquewhite; border-radius: 2px; }",
+            ".footer-zylon-ico { height: 20px; margin-left: 5px; background-color: antiquewhite; border-radius: 2px; }"
+            "h1 { font-size: 2.5em; } p { font-size: 1.1em; }"
+            ".contain { display: flex !important; flex-direction: column !important; }"
+            ".inputDiv { max-width: 450px; margin: 0px auto; }"
+            "input { padding: 10px; border-radius: 5px; color: white; background-color: #4B5563; }"
+            "input::placeholder { color: rgba(255, 255, 255, 0.9); }"
+            "#Login { display: grid !important; }"
         ) as blocks:
-            with gr.Row():
-                gr.HTML(f"<div class='logo'/><img src={logo_svg} alt=PrivateGPT></div")
+            # Define a state variable to track login status 
+            with gr.Row(elem_id="gpt_text", visible=False) as nl1:
+                gr.HTML(f"<div class='logo'/><img style='width: 400px; height: 40px;' src={logo_svg} alt=PrivateGPT></div")
 
-            with gr.Row(equal_height=False):
+            with gr.Row(equal_height=False, visible=False) as nl2:
                 with gr.Column(scale=3):
                     default_mode = self._default_mode
                     mode = gr.Radio(
@@ -561,12 +594,58 @@ class PrivateGptUi:
                         additional_inputs=[mode, upload_button, system_prompt_input],
                     )
 
-            with gr.Row():
+            with gr.Row(visible=False) as nl3:
                 avatar_byte = AVATAR_BOT.read_bytes()
                 f_base64 = f"data:image/png;base64,{base64.b64encode(avatar_byte).decode('utf-8')}"
                 gr.HTML(
                     f"<div class='footer'><a class='footer-zylon-link' href='https://zylon.ai/'>Maintained by Zylon <img class='footer-zylon-ico' src='{f_base64}' alt=Zylon></a></div>"
                 )
+            with gr.Row(elem_id="Login"):
+                with gr.Row(visible=True) as l1:
+                    gr.HTML(
+                        "<div class='contain' style='text-align: center; margin-top: 12vh; margin-bottom: 50px;'>"
+                        "<h1>Login</h1><p>Please enter your login and password</p></div>"
+                    )
+
+                with gr.Row(elem_classes="inputDiv", visible=True) as l2:
+                    self.emailtextbox = gr.components.Textbox(
+                        max_lines=1,
+                        placeholder="Email",
+                        show_label=False,
+                        elem_id="emailtextbox",
+                        type="email",
+                    )
+
+                with gr.Row(elem_classes="inputDiv", visible=True) as l3:
+                    self.passwordtextbox = gr.components.Textbox(
+                        max_lines=1,
+                        placeholder="Password",
+                        show_label=False,
+                        type="password",
+                    )
+
+                with gr.Row(elem_classes="inputDiv", visible=True) as l4:
+                    self.button = gr.components.Button(value="LOGIN", size="lg", elem_id="login_btn")
+
+                with gr.Row(elem_classes="inputDiv", visible=True) as l5:
+                    error = gr.HTML(
+                        f"<div class='contain' style='text-align: center; margin-top: 10px;'>"
+                        f"<p>{self.message}</p></div>"
+                    )
+
+                with gr.Row(visible=True) as l6:
+                    gr.HTML(
+                        "<div class='contain' style='text-align: center; margin-top: 80px; margin-bottom: 50px;'>"
+                        "If you are not a user, please sign up on "
+                        "<a href='https://md.msai-labs.com/'>MSAI Website</a></div>"
+                    )
+
+            self.button.click(
+                self.login,
+                inputs=[self.emailtextbox, self.passwordtextbox],
+                outputs=[error, nl1, nl2, nl3, l1, l2, l3, l4, l5, l6]
+            )
+            
 
         return blocks
 
@@ -580,10 +659,3 @@ class PrivateGptUi:
         blocks.queue()
         logger.info("Mounting the gradio UI, at path=%s", path)
         gr.mount_gradio_app(app, blocks, path=path, favicon_path=AVATAR_BOT)
-
-
-if __name__ == "__main__":
-    ui = global_injector.get(PrivateGptUi)
-    _blocks = ui.get_ui_blocks()
-    _blocks.queue()
-    _blocks.launch(debug=False, show_api=False)
