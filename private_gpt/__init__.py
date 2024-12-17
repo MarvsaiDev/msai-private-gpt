@@ -2,6 +2,7 @@
 
 import logging
 import os
+from datetime import datetime
 
 # Set to 'DEBUG' to have extensive logging turned on, even for libraries
 ROOT_LOG_LEVEL = "INFO"
@@ -9,7 +10,21 @@ ROOT_LOG_LEVEL = "INFO"
 PRETTY_LOG_FORMAT = (
     "%(asctime)s.%(msecs)03d [%(levelname)-8s] %(name)+25s - %(message)s"
 )
-logging.basicConfig(level=ROOT_LOG_LEVEL, format=PRETTY_LOG_FORMAT, datefmt="%H:%M:%S")
+# Get the current date and time 
+current_time = datetime.now().strftime("(date=%Y-%m-%d), (time=%H-%M-%S)")
+# Configure logging 
+log_directory = "/app/logs" 
+# Directory inside the container 
+log_filename = f"app_{current_time}.log" 
+log_path = f"{log_directory}/{log_filename}" 
+logging.basicConfig(
+    level=ROOT_LOG_LEVEL, 
+    format=PRETTY_LOG_FORMAT, datefmt="%H:%M:%S",
+    handlers=[ 
+        logging.FileHandler(log_path), 
+        logging.StreamHandler() 
+    ]
+)
 logging.captureWarnings(True)
 
 # Disable gradio analytics
