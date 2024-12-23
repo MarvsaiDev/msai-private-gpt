@@ -373,7 +373,7 @@ class PrivateGptUi:
     def login(self, email, password):
         try:
             if email == "" or password == "":
-                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Please fill both fields.</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Please fill both fields.</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
             # Mock API call for demonstration
             response = requests.post(
                 "https://md.msai-labs.com/v1/external_auth/signin",
@@ -382,11 +382,11 @@ class PrivateGptUi:
 
             if response.status_code == 200:
                 # return RedirectResponse(url="/gpt")
-                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Login successful! Redirecting...</p></div>", gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)
+                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Login successful! Redirecting...</p></div>", gr.update(visible=True), gr.update(visible=True),gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=False)
             else:
-                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Invalid credentials. Please try again.</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+                return "<div class='contain' style='text-align: center; margin-top: 10px;'><p>Invalid credentials. Please try again.</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
         except Exception as e:
-            return f"<div class='contain' style='text-align: center; margin-top: 10px;'><p>Error: {str(e)}</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
+            return f"<div class='contain' style='text-align: center; margin-top: 10px;'><p>Error: {str(e)}</p></div>", gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True), gr.update(visible=True)
         
 
     def _build_ui_blocks(self) -> gr.Blocks:
@@ -593,13 +593,6 @@ class PrivateGptUi:
                         ),
                         additional_inputs=[mode, upload_button, system_prompt_input],
                     )
-
-            with gr.Row(visible=False) as nl3:
-                avatar_byte = AVATAR_BOT.read_bytes()
-                f_base64 = f"data:image/png;base64,{base64.b64encode(avatar_byte).decode('utf-8')}"
-                gr.HTML(
-                    f"<div class='footer'><a class='footer-zylon-link' href='https://zylon.ai/'>Maintained by Zylon <img class='footer-zylon-ico' src='{f_base64}' alt=Zylon></a></div>"
-                )
             with gr.Row(elem_id="Login"):
                 with gr.Row(visible=True) as l1:
                     gr.HTML(
@@ -643,7 +636,7 @@ class PrivateGptUi:
             self.button.click(
                 self.login,
                 inputs=[self.emailtextbox, self.passwordtextbox],
-                outputs=[error, nl1, nl2, nl3, l1, l2, l3, l4, l5, l6]
+                outputs=[error, nl1, nl2, l1, l2, l3, l4, l5, l6]
             )
             
 
